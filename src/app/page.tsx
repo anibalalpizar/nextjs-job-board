@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma"
 import JobListItem from "@/components/JobsListItem"
+import JobsFilterSidebar from "@/components/JobsFilterSidebar"
 
 export default async function Home() {
   const jobs = await prisma.job.findMany({
@@ -17,8 +18,9 @@ export default async function Home() {
           worldwide.
         </p>
       </div>
-      <section>
-        <div className="space-y-4">
+      <section className="flex flex-col gap-4 md:flex-row">
+        <JobsFilterSidebar />
+        <div className="grow space-y-4">
           {jobs.map((job) => (
             <JobListItem key={job.id} job={job} />
           ))}
