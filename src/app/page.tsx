@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+
 import type { JobFilter } from "@/lib/validations"
 import JobsFilterSidebar from "@/components/JobsFilterSidebar"
 import H1 from "@/components/ui/h1"
@@ -9,6 +11,32 @@ interface PageProps {
     type?: string
     location?: string
     remote?: string
+  }
+}
+function getTitle({ search, type, location, remote }: JobFilter) {
+  const titlePrefix = search
+    ? `${search} jobs`
+    : type
+    ? `${type} jobs`
+    : remote
+    ? "Remote jobs"
+    : "All jobs"
+
+  const titleSuffix = location ? ` in ${location}` : ""
+
+  return `${titlePrefix}${titleSuffix}`
+}
+
+export function generateMetadata({
+  searchParams: { search, type, location, remote },
+}: PageProps): Metadata {
+  return {
+    title: `${getTitle({
+      search,
+      type,
+      location,
+      remote: remote === "true",
+    })} | Jobs`,
   }
 }
 
@@ -26,7 +54,7 @@ export default async function Home(props: PageProps) {
   return (
     <main className="max-w-5xl m-auto px-3 my-10 space-y-10">
       <div className="space-y-5 text-center">
-        <H1>Find your next job</H1>
+        <H1>{getTitle(filterValues)}</H1>
         <p className="text-muted-foreground">
           Browse through thousands of full-time or part-time jobs near you or
           worldwide.
