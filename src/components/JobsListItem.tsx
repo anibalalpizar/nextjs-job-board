@@ -1,13 +1,24 @@
 import Image from "next/image"
+import Link from "next/link"
 import type { Job } from "@prisma/client"
-import { Banknote, Briefcase, Clock, Globe2, MapPin } from "lucide-react"
-import companyLogoPlaceholder from "@/assets/company-logo-placeholder.png"
+import {
+  Banknote,
+  Briefcase,
+  Clock,
+  Globe2,
+  MapPin,
+  ArrowRight,
+} from "lucide-react"
 
+import companyLogoPlaceholder from "@/assets/company-logo-placeholder.png"
 import { formatCurrency, formatRelativeDate } from "@/lib/utils"
 import { Badge } from "./ui/badge"
+import { Card, CardContent, CardFooter } from "./ui/card"
+import { Button } from "./ui/button"
 
 export default function JobListItem({
   job: {
+    id,
     title,
     companyName,
     type,
@@ -21,48 +32,59 @@ export default function JobListItem({
   job: Job
 }) {
   return (
-    <article className="flex gap-3 border rounded-lg p-5 hover:bg-muted/60">
-      <Image
-        className="rounded-lg self-center"
-        src={companyLogoUrl || companyLogoPlaceholder}
-        alt={`${companyName} logo`}
-        width={100}
-        height={100}
-      />
-      <div className="flex-grow space-y-3">
-        <div>
-          <h2 className="text-xl font-medium">{title}</h2>
-          <p className="text-muted-foreground">{companyName}</p>
+    <Card className="group hover:shadow-md transition-all duration-300">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="relative w-16 h-16 flex-shrink-0">
+            <Image
+              src={companyLogoUrl || companyLogoPlaceholder}
+              alt={`${companyName} logo`}
+              layout="fill"
+              objectFit="contain"
+              className="rounded-md"
+            />
+          </div>
+          <div className="flex-grow">
+            <h2 className="text-xl font-semibold mb-1 group-hover:text-primary transition-colors">
+              {title}
+            </h2>
+            <p className="text-muted-foreground mb-4">{companyName}</p>
+            <div className="grid grid-cols-2 gap-y-2 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Briefcase className="h-4 w-4" />
+                <span>{type}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>{locationType}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Globe2 className="h-4 w-4" />
+                <span>{location || "Worldwide"}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Banknote className="h-4 w-4" />
+                <span>{formatCurrency(salary, "USD")}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="text-muted-foreground">
-          <p className="flex items-center gap-1.5 sm:hidden">
-            <Briefcase className="shrink-0" size={16} /> {type}
-          </p>
-          <p className="flex items-center gap-1.5">
-            <MapPin className="shrink-0" size={16} />
-            {locationType}
-          </p>
-          <p className="flex items-center gap-1.5">
-            <Globe2 className="shrink-0" size={16} />
-            {location || "Worldwide"}
-          </p>
-          <p className="flex items-center gap-1.5">
-            <Banknote className="shrink-0" size={16} />
-            {formatCurrency(salary, "USD")}
-          </p>
-          <p className="flex items-center gap-1.5 sm:hidden">
-            <Clock className="shrink-0" size={16} />
+      </CardContent>
+      <CardFooter className="px-6 py-4 bg-muted/40 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{type}</Badge>
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
             {formatRelativeDate(createdAt)}
-          </p>
+          </span>
         </div>
-      </div>
-      <div className="hidden sm:flex flex-col shrink-0 items-end justify-between">
-        <Badge>{type}</Badge>
-        <span className="flex items-center gap-1.5 text-muted-foreground">
-          <Clock className="shrink-0" size={16} />
-          {formatRelativeDate(createdAt)}
-        </span>
-      </div>
-    </article>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href={`/jobs/${id}`}>
+            View Details
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }
