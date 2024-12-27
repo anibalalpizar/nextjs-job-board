@@ -1,29 +1,13 @@
-import { redirect } from "next/navigation"
-
 import prisma from "@/lib/prisma"
-import { type JobFilter, jobFilterSchema } from "@/lib/validations"
+import { type JobFilter } from "@/lib/validations"
+import { filterJobs } from "@/actions/filterJobs"
 import { JOBS_TYPES as jobTypes } from "@/constants/jobs.types"
+import FormSubmitButton from "./FormSubmitButton"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import Select from "./ui/select"
-import FormSubmitButton from "./FormSubmitButton"
-
-async function filterJobs(formData: FormData) {
-  "use server"
-
-  const values = Object.fromEntries(formData.entries())
-
-  const { search, type, location, remote } = jobFilterSchema.parse(values)
-
-  const searchParams = new URLSearchParams({
-    ...(search && { search: search.trim() }),
-    ...(type && { type }),
-    ...(location && { location }),
-    ...(remote && { remote: "true" }),
-  })
-
-  redirect(`/?${searchParams.toString()}`)
-}
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { Checkbox } from "./ui/checkbox"
 
 interface JobFilterSidebarProps {
   defaultValues: JobFilter
@@ -43,10 +27,17 @@ export default async function JobFilterSidebar({
     )) as string[]
 
   return (
-    <aside className="sticky top-0 h-fit rounded-lg border bg-background p-4 md:w-[260px]">
-      <form action={filterJobs} key={JSON.stringify(defaultValues)}>
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2">
+    <Card className="sticky top-4 h-fit w-full md:w-[300px]">
+      <CardHeader>
+        <CardTitle>Filter Jobs</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form
+          action={filterJobs}
+          key={JSON.stringify(defaultValues)}
+          className="space-y-6"
+        >
+          <div className="space-y-2">
             <Label htmlFor="search">Search</Label>
             <Input
               id="search"
@@ -55,7 +46,7 @@ export default async function JobFilterSidebar({
               defaultValue={defaultValues.search}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
             <Select
               id="type"
@@ -70,7 +61,7 @@ export default async function JobFilterSidebar({
               ))}
             </Select>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
             <Select
               id="location"
@@ -85,19 +76,17 @@ export default async function JobFilterSidebar({
               ))}
             </Select>
           </div>
-          <div className="flex items-center gap-2">
-            <input
+          <div className="flex items-center space-x-2">
+            <Checkbox
               id="remote"
               name="remote"
-              type="checkbox"
-              className="scale-125 accent-black"
               defaultChecked={defaultValues.remote}
             />
-            <Label htmlFor="remote">Remote jobs</Label>
+            <Label htmlFor="remote">Remote jobs only</Label>
           </div>
           <FormSubmitButton className="w-full">Apply filters</FormSubmitButton>
-        </div>
-      </form>
-    </aside>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
