@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { draftToMarkdown } from "markdown-draft-js"
 import { X } from "lucide-react"
 
+import { createJob } from "@/actions/newJob"
 import { CreateJob, createJobSchema } from "@/lib/validations"
 import {
   JOBS_TYPES as jobs_types,
@@ -41,26 +42,37 @@ export default function NewJobForm() {
     formState: { isSubmitting },
   } = form
 
-  async function onSubmit(data: CreateJob) {
-    alert(JSON.stringify(data, null, 2))
+  async function onSubmit(values: CreateJob) {
+    const formData = new FormData()
+
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) {
+        formData.append(key, value)
+      }
+    })
+
+    try {
+      await createJob(formData)
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      }
+    }
   }
 
   return (
-    <main className="max-w-3xl m-auto my-10 space-y-10">
-      <div className="">
-        <div className="space-y-5 text-center">
-          <H1>Find your perfect developer</H1>
-          <p className="text-muted-foreground">
-            We have the best developers in the world. You can find the perfect
-            developer for your project here
-          </p>
-        </div>
+    <main className="m-auto my-10 max-w-3xl space-y-10">
+      <div className="space-y-5 text-center">
+        <H1>Find your perfect developer</H1>
+        <p className="text-muted-foreground">
+          Get your job posting seen by thousands of job seekers.
+        </p>
       </div>
-      <div className="space-y-6 border rounded-lg p-4">
+      <div className="space-y-6 rounded-lg border p-4">
         <div>
-          <h2 className="font-semibold">Job Details</h2>
+          <h2 className="font-semibold">Job details</h2>
           <p className="text-muted-foreground">
-            Provide the details of the job you want to post
+            Provide a job description and details
           </p>
         </div>
         <Form {...form}>
@@ -74,12 +86,9 @@ export default function NewJobForm() {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Job Title</FormLabel>
+                  <FormLabel>Job title</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g. Senior React Developer"
-                      {...field}
-                    />
+                    <Input placeholder="e.g. Frontend Developer" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -90,15 +99,15 @@ export default function NewJobForm() {
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Job Type</FormLabel>
+                  <FormLabel>Job type</FormLabel>
                   <FormControl>
                     <Select {...field} defaultValue="">
                       <option value="" hidden>
-                        Select Job Type
+                        Select an option
                       </option>
-                      {jobs_types.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
+                      {jobs_types.map((jobType) => (
+                        <option key={jobType} value={jobType}>
+                          {jobType}
                         </option>
                       ))}
                     </Select>
@@ -112,7 +121,7 @@ export default function NewJobForm() {
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company Name</FormLabel>
+                  <FormLabel>Company</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -126,7 +135,7 @@ export default function NewJobForm() {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               render={({ field: { value, ...fieldValues } }) => (
                 <FormItem>
-                  <FormLabel>Job Title</FormLabel>
+                  <FormLabel>Company logo</FormLabel>
                   <FormControl>
                     <Input
                       {...fieldValues}
@@ -144,10 +153,10 @@ export default function NewJobForm() {
             />
             <FormField
               control={control}
-              name="type"
+              name="locationType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Job Type</FormLabel>
+                  <FormLabel>Location</FormLabel>
                   <FormControl>
                     <Select
                       {...field}
@@ -155,18 +164,16 @@ export default function NewJobForm() {
                       onChange={(e) => {
                         field.onChange(e)
                         if (e.currentTarget.value === "Remote") {
-                          setValue("location", "Remote", {
-                            shouldValidate: true,
-                          })
+                          trigger("location")
                         }
                       }}
                     >
                       <option value="" hidden>
-                        Select Job Type
+                        Select an option
                       </option>
-                      {locations_types.map((location) => (
-                        <option key={location} value={location}>
-                          {location}
+                      {locations_types.map((locationType) => (
+                        <option key={locationType} value={locationType}>
+                          {locationType}
                         </option>
                       ))}
                     </Select>
@@ -180,7 +187,7 @@ export default function NewJobForm() {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Office Location</FormLabel>
+                  <FormLabel>Office location</FormLabel>
                   <FormControl>
                     <LocationInput
                       onLocationSelected={field.onChange}
@@ -190,10 +197,10 @@ export default function NewJobForm() {
                   {watch("location") && (
                     <div className="flex items-center gap-1">
                       <button
+                        type="button"
                         onClick={() => {
                           setValue("location", "", { shouldValidate: true })
                         }}
-                        type="button"
                       >
                         <X size={20} />
                       </button>
@@ -216,11 +223,11 @@ export default function NewJobForm() {
                         <div className="flex items-center">
                           <Input
                             id="applicationEmail"
-                            placeholder="Email address"
+                            placeholder="Email"
                             type="email"
                             {...field}
                           />
-                          <span className="mx-auto">or</span>
+                          <span className="mx-2">or</span>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -234,7 +241,7 @@ export default function NewJobForm() {
                     <FormItem className="grow">
                       <FormControl>
                         <Input
-                          placeholder="website"
+                          placeholder="Website"
                           type="url"
                           {...field}
                           onChange={(e) => {
@@ -276,18 +283,14 @@ export default function NewJobForm() {
                 <FormItem>
                   <FormLabel>Salary</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g. $50,000"
-                      {...field}
-                      type="number"
-                    />
+                    <Input {...field} type="number" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <LoadingButton type="submit" loading={isSubmitting}>
-              Post Job
+              Submit
             </LoadingButton>
           </form>
         </Form>
